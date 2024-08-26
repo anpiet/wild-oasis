@@ -27,10 +27,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body
         className={`bg-blue-500 text-gray-50 min-h-screen ${josefin.className}`}
       >
-        <Logo />
-        <Navigation />
-        {children}
-        <footer>Copyright by webLeet™ 2024</footer>
+        <header>
+          <Logo />
+          <Navigation />
+        </header>
+        <main>{children}</main>
+
+        <footer>Copyright by the Wild Oasis</footer>
       </body>
     </html>
   );
