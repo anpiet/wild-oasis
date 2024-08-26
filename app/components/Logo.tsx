@@ -6,7 +6,7 @@ function Logo() {
   return (
     <Link href='/' className='flex items-center gap-4 z-10'>
       <Image
-        src='/icon.png'
+        src={logo}
         height='60'
         quality={100}
         width='60'
