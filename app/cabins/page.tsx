@@ -1,4 +1,3 @@
-import { Counter } from '../components/Counter';
 import { User } from '../types/user';
 
 export const metadata = {
@@ -18,7 +17,6 @@ const Page = async () => {
           <li key={user.id}>{user.name}</li>
         ))}
       </ul>
-      <Counter users={users} />
     </>
   );
 };
