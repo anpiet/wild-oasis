@@ -6,17 +6,23 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed-guests": "node prisma/seed-guests.js",
+    "seed-cabins": "node prisma/seed-cabins.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
+    "@prisma/client": "^5.19.0",
     "date-fns": "^3.6.0",
+    "fs": "^0.0.1-security",
     "next": "^14.2.5",
+    "path": "^0.12.7",
     "pnpm": "^9.6.0",
     "react": "^18.3.1",
     "react-day-picker": "^9.0.8",
     "react-dom": "^18.3.1",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -25,6 +31,7 @@
     "eslint": "^8",
     "eslint-config-next": "^14.2.5",
     "postcss": "^8",
+    "prisma": "^5.19.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   },

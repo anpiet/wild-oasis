@@ -1,12 +1,14 @@
-import { title } from 'process';
+import { getBookings } from '@/app/lib/data-service';
 import ReservationCard from './ReservationCard';
 
 export const metadata = {
   title: 'Reservations',
 };
-export default function Page() {
+
+export default async function Page() {
   // CHANGE
-  const bookings: any[] = [];
+  const userId = 1;
+  const bookings = await getBookings(userId);
 
   return (
     <div>

@@ -1,14 +1,15 @@
+import { Cabin } from '@prisma/client';
 import CabinCard from '../components/CabinCard';
-import { Cabin } from '../types/cabin';
+import { getCabins } from '../lib/data-service';
 
 export const metadata = {
   title: 'Cabins',
 };
 
-export default function Page() {
+export default async function Page() {
   // CHANGE
-  const cabins: Cabin[] = [];
-
+  const cabins = await getCabins();
+  console.log(cabins);
   return (
     <div>
       <h1 className='text-4xl mb-5 text-accent-400 font-medium'>
