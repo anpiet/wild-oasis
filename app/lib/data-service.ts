@@ -1,138 +1,83 @@
 import { eachDayOfInterval } from 'date-fns';
 import { Country } from '../types/country';
-
+import { Booking, Guest, PrismaClient } from '@prisma/client';
 /////////////
 // GET
+export const dbClient = new PrismaClient();
 
 export async function getCabin(id: number) {
-  const { data, error } = await supabase
-    .from('cabins')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  // For testing
-  // await new Promise((res) => setTimeout(res, 1000));
-
-  if (error) {
-    console.error(error);
+  try {
+    const cabin = await dbClient.cabin.findFirst({
+      where: {
+        id,
+      },
+    });
+    return cabin;
+  } catch (e) {
+    throw new Error('error with getting cabin by id');
   }
-
-  return data;
-}
-
-export async function getCabinPrice(id) {
-  const { data, error } = await supabase
-    .from('cabins')
-    .select('regularPrice, discount')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error(error);
-  }
-
-  return data;
 }
 
 export const getCabins = async function () {
-  const { data, error } = await supabase
-    .from('cabins')
-    .select('id, name, maxCapacity, regularPrice, discount, image')
-    .order('name');
-
-  if (error) {
-    console.error(error);
-    throw new Error('Cabins could not be loaded');
+  try {
+    const cabins = await dbClient.cabin.findMany();
+    return cabins;
+  } catch (e) {
+    throw new Error('Error while getting cabins');
   }
-
-  return data;
 };
 
 // Guests are uniquely identified by their email address
-export async function getGuest(email) {
-  const { data, error } = await supabase
-    .from('guests')
-    .select('*')
-    .eq('email', email)
-    .single();
-
-  // No error here! We handle the possibility of no guest in the sign in callback
-  return data;
+export async function getGuest(email: string) {
+  try {
+    const guest = await dbClient.guest.findFirst({
+      where: {
+        email,
+      },
+    });
+    return guest;
+  } catch (e) {
+    throw new Error('Error getting guest by email');
+  }
 }
 
-export async function getBooking(id) {
-  const { data, error, count } = await supabase
-    .from('bookings')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error(error);
-    throw new Error('Booking could not get loaded');
+export async function getBooking(id: number) {
+  try {
+    const booking = await dbClient.booking.findFirst({
+      where: {
+        id,
+      },
+      include: { cabin: true },
+    });
+    return booking;
+  } catch (e) {
+    throw new Error('Error getting booking');
   }
-
-  return data;
 }
 
-export async function getBookings(guestId) {
-  const { data, error, count } = await supabase
-    .from('bookings')
-    // We actually also need data on the cabins as well. But let's ONLY take the data that we actually need, in order to reduce downloaded data.
-    .select(
-      'id, created_at, startDate, endDate, numNights, numGuests, totalPrice, guestId, cabinId, cabins(name, image)'
-    )
-    .eq('guestId', guestId)
-    .order('startDate');
-
-  if (error) {
-    console.error(error);
-    throw new Error('Bookings could not get loaded');
+export async function getBookings(guestId: number) {
+  try {
+    const bookings = await dbClient.booking.findMany({
+      where: {
+        guestId,
+      },
+      include: {
+        cabin: true,
+      },
+    });
+    return bookings;
+  } catch (e) {
+    throw new Error('Error getting guest bookings');
   }
-
-  return data;
-}
-
-export async function getBookedDatesByCabinId(cabinId) {
-  let today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  today = today.toISOString();
-
-  // Getting all bookings
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('*')
-    .eq('cabinId', cabinId)
-    .or(`startDate.gte.${today},status.eq.checked-in`);
-
-  if (error) {
-    console.error(error);
-    throw new Error('Bookings could not get loaded');
-  }
-
-  // Converting to actual dates to be displayed in the date picker
-  const bookedDates = data
-    .map((booking) => {
-      return eachDayOfInterval({
-        start: new Date(booking.startDate),
-        end: new Date(booking.endDate),
-      });
-    })
-    .flat();
-
-  return bookedDates;
 }
 
 export async function getSettings() {
-  const { data, error } = await supabase.from('settings').select('*').single();
-
-  if (error) {
-    console.error(error);
-    throw new Error('Settings could not be loaded');
+  try {
+    const settings = await dbClient.settings.findFirst();
+    return settings;
+  } catch (e) {
+    throw new Error('Error getting settings');
   }
-
-  return data;
 }
 
 export async function getCountries(): Promise<Country[]> {
@@ -150,76 +95,78 @@ export async function getCountries(): Promise<Country[]> {
 /////////////
 // CREATE
 
-export async function createGuest(newGuest) {
-  const { data, error } = await supabase.from('guests').insert([newGuest]);
-
-  if (error) {
-    console.error(error);
-    throw new Error('Guest could not be created');
+export async function createGuest(newGuest: Guest) {
+  try {
+    const guest = await dbClient.guest.create({
+      data: newGuest,
+    });
+    return guest;
+  } catch (e) {
+    throw new Error('Error adding new guest');
   }
-
-  return data;
 }
 
-export async function createBooking(newBooking) {
-  const { data, error } = await supabase
-    .from('bookings')
-    .insert([newBooking])
-    // So that the newly created object gets returned!
-    .select()
-    .single();
-
-  if (error) {
-    console.error(error);
-    throw new Error('Booking could not be created');
+export async function createBooking(newBooking: Booking) {
+  try {
+    const booking = await dbClient.booking.create({
+      data: newBooking,
+    });
+    return booking;
+  } catch (e) {
+    throw new Error('Error creating new booking');
   }
-
-  return data;
 }
 
 /////////////
 // UPDATE
 
 // The updatedFields is an object which should ONLY contain the updated data
-export async function updateGuest(id, updatedFields) {
-  const { data, error } = await supabase
-    .from('guests')
-    .update(updatedFields)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error(error);
-    throw new Error('Guest could not be updated');
+export async function updateGuest(id: number, updatedFields: Partial<Guest>) {
+  try {
+    const guest = await dbClient.guest.update({
+      where: {
+        id,
+      },
+      data: {
+        ...updatedFields,
+      },
+    });
+    return guest;
+  } catch (e) {
+    throw new Error('Error updating guest');
   }
-  return data;
 }
 
-export async function updateBooking(id, updatedFields) {
-  const { data, error } = await supabase
-    .from('bookings')
-    .update(updatedFields)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error(error);
-    throw new Error('Booking could not be updated');
+export async function updateBooking(
+  id: number,
+  updatedFields: Partial<Booking>
+) {
+  try {
+    const booking = await dbClient.booking.update({
+      where: {
+        id,
+      },
+      data: {
+        ...updatedFields,
+      },
+    });
+  } catch (e) {
+    throw new Error('Error updating booking');
   }
-  return data;
 }
 
 /////////////
 // DELETE
 
-export async function deleteBooking(id) {
-  const { data, error } = await supabase.from('bookings').delete().eq('id', id);
-
-  if (error) {
-    console.error(error);
-    throw new Error('Booking could not be deleted');
+export async function deleteBooking(id: number) {
+  try {
+    const deletedBooking = await dbClient.booking.delete({
+      where: {
+        id,
+      },
+    });
+    return deleteBooking;
+  } catch (e) {
+    throw new Error('Error deleting booking');
   }
-  return data;
 }
